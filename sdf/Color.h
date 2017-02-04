@@ -4,7 +4,11 @@
 #include <QtXml/QDomElement>
 #include "SDFElement.h"
 
-struct Color : SDFElement {
+struct Color : public SDFElement {
+
+    Color();
+
+    Color(double r, double g, double b, double a);
 
     double r = 0;
     double g = 0;

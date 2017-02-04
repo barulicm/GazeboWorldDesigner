@@ -30,6 +30,7 @@ private:
     QTreeView modelTreeView;
 
     PropertyPane propertyPane;
+    PropertyPane scenePropertyPane;
 
 };
 

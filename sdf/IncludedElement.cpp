@@ -45,7 +45,7 @@ void IncludedElement::render(QPainter &painter, const QPointF &origin, const dou
 
 double IncludedElement::distanceToPoint(const double &x, const double &y) const {
     if(!pose)
-        return std::numeric_limits<double>::infinity();
+        return std::sqrt( (x*x) + (y*y) );
 
     double dx = x - pose->x;
     double dy = y - pose->y;
@@ -53,9 +53,10 @@ double IncludedElement::distanceToPoint(const double &x, const double &y) const 
 }
 
 void IncludedElement::setPose(const double &x, const double &y, const double &z) {
-    if(pose) {
-        pose->x = x;
-        pose->y = y;
-        pose->z = z;
+    if(!pose) {
+        pose = Pose{};
     }
+    pose->x = x;
+    pose->y = y;
+    pose->z = z;
 }

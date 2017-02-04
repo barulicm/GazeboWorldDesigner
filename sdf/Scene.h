@@ -1,7 +1,3 @@
-//
-// Created by matt on 1/27/17.
-//
-
 #ifndef GWD_SCENE_H
 #define GWD_SCENE_H
 
@@ -10,17 +6,17 @@
 #include "SDFElement.h"
 #include "Color.h"
 
-class Scene : SDFElement {
+class Scene : public SDFElement {
 
 public:
 
     QDomElement toXML(QDomDocument &document) const override;
 
-    Color ambient;
-    Color background;
-    bool shadows;
-    bool show_grid;
-    bool show_origin;
+    Color ambient = Color(1,1,1,1);
+    Color background = Color(0.7,0.7,0.7,1);
+    bool shadows = true;
+    bool show_grid = true;
+    bool show_origin = true;
 
     std::experimental::optional<double> time;
     std::experimental::optional<double> sunrise_time;

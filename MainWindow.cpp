@@ -20,12 +20,30 @@ MainWindow::MainWindow() {
 
     connect(&worldView, &WorldView::showProperties, &propertyPane, &PropertyPane::showProperties);
 
+    connect(&worldView, &WorldView::showSceneProperties, &scenePropertyPane, &PropertyPane::showProperties);
+
+    QVBoxLayout *propertyPanesLayout = new QVBoxLayout;
+    propertyPanesLayout->addWidget(new QLabel{"Object Properties"});
+    propertyPanesLayout->addWidget(&propertyPane);
+    propertyPanesLayout->addStretch();
+    QFrame* line = new QFrame();
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Plain);
+    propertyPanesLayout->addWidget(line);
+    propertyPanesLayout->addWidget(new QLabel{"Scene Properties"});
+    propertyPanesLayout->addWidget(&scenePropertyPane);
+
+    QWidget *propertPanesWidget = new QWidget;
+    propertPanesWidget->setLayout(propertyPanesLayout);
+
     QSplitter *splitter = new QSplitter{this};
     splitter->addWidget(&modelTreeView);
     splitter->addWidget(&worldView);
-    splitter->addWidget(&propertyPane);
+    splitter->addWidget(propertPanesWidget);
 
     setCentralWidget(splitter);
+
+    worldView.newFile();
 }
 
 void MainWindow::createActions() {

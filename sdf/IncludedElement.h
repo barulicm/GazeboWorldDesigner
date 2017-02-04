@@ -6,7 +6,7 @@
 #include "SDFElement.h"
 #include "Pose.h"
 
-struct IncludedElement : SDFElement {
+struct IncludedElement : public SDFElement {
 
     std::string uri;
     std::experimental::optional<std::string> name;

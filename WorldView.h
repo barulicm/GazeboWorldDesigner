@@ -19,6 +19,7 @@ public slots:
 
 signals:
     void showProperties(SDFElement *);
+    void showSceneProperties(Scene *);
 
 protected:
     void paintEvent(QPaintEvent *event) override;

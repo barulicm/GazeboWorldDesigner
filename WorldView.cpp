@@ -114,6 +114,7 @@ void WorldView::mouseReleaseEvent(QMouseEvent *event) {
 
 void WorldView::newFile() {
     world = World{};
+    emit showSceneProperties(&world.scene);
     currentFilePath.clear();
     update();
 }
@@ -137,6 +138,8 @@ void WorldView::openFile() {
 
 
     world = Parser::ParseWorld(document);
+
+    emit showSceneProperties(&world.scene);
 
     currentFilePath = filename.toStdString();
 

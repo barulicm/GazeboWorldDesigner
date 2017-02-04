@@ -4,7 +4,7 @@
 #include <QtXml/QDomElement>
 #include "SDFElement.h"
 
-struct Pose : SDFElement {
+struct Pose : public SDFElement {
 
     double x = 0.0;
     double y = 0.0;

@@ -6,7 +6,7 @@
 #include "SDFElement.h"
 #include "Scene.h"
 
-class World : SDFElement {
+class World : public SDFElement {
 
 public:
     std::string name = "default";

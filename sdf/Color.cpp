@@ -3,6 +3,11 @@
 
 using namespace std;
 
+Color::Color() {}
+
+Color::Color(double red, double green, double blue, double alpha)
+    : r(red), g(green), b(blue), a(alpha) {}
+
 QDomElement Color::toXML(QDomDocument &document) const {
     QDomElement element = document.createElement("color");
     element.appendChild(document.createTextNode((to_string(r) + " " + to_string(g) + " " + to_string(b) + " " + to_string(a)).c_str()));

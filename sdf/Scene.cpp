@@ -14,10 +14,17 @@ QDomElement Scene::toXML(QDomDocument &document) const {
     backgroundElement.setTagName("background");
     xml.appendChild(backgroundElement);
 
-    QDomElement shadowsElement = document.createElement("shadows");
+    auto shadowsElement = document.createElement("shadows");
     shadowsElement.appendChild( document.createTextNode( (shadows ? "true" : "false") ) );
     xml.appendChild(shadowsElement);
 
+    auto gridElement = document.createElement("grid");
+    gridElement.appendChild( document.createTextNode( (show_grid ? "true" : "false") ) );
+    xml.appendChild(gridElement);
+
+    auto originElement = document.createElement("origin_visual");
+    originElement.appendChild( document.createTextNode( (show_origin ? "true" : "false") ) );
+    xml.appendChild(originElement);
 
     auto timeElement = optionalToXML(document, time);
     timeElement.setTagName("time");

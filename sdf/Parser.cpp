@@ -1,7 +1,5 @@
 #include "Parser.h"
 #include <sstream>
-#include <iostream>
-#include <cctype>
 
 using namespace std;
 
@@ -41,7 +39,7 @@ Scene Parser::parseScene(const QDomElement &sceneElement) {
         istringstream{gridElement.text().toStdString()} >> scene.show_grid;
     }
 
-    auto originElement = sceneElement.firstChildElement("origin_visuel");
+    auto originElement = sceneElement.firstChildElement("origin_visual");
     if(!originElement.isNull()) {
         istringstream{originElement.text().toStdString()} >> scene.show_origin;
     }
