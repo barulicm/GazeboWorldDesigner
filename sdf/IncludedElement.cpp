@@ -45,11 +45,11 @@ void IncludedElement::render(QPainter &painter, const QPointF &origin, const dou
 
 double IncludedElement::distanceToPoint(const double &x, const double &y) const {
     if(!pose)
-        return std::sqrt( (x*x) + (y*y) );
+        return std::hypot(x, y);
 
     double dx = x - pose->x;
     double dy = y - pose->y;
-    return std::sqrt( (dx*dx) + (dy*dy) );
+    return std::hypot(dx, dy);
 }
 
 void IncludedElement::setPose(const double &x, const double &y, const double &z) {
