@@ -11,7 +11,7 @@ class SDFElement {
 public:
     virtual QDomElement toXML(QDomDocument &document) const;
 
-    virtual void render(QPainter &painter, const QPointF &origin, const double &scale) const;
+    virtual void render(QPainter &painter, const QPointF &origin, const double &scale, bool selected) const;
 
     virtual double distanceToPoint(const double &x, const double &y) const;
 

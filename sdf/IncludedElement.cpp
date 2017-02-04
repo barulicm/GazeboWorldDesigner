@@ -25,7 +25,7 @@ QDomElement IncludedElement::toXML(QDomDocument &document) const {
     return xml;
 }
 
-void IncludedElement::render(QPainter &painter, const QPointF &origin, const double &scale) const {
+void IncludedElement::render(QPainter &painter, const QPointF &origin, const double &scale, bool selected) const {
     QPointF posPoint;
     if(pose) {
         posPoint.setX(pose->x);
@@ -36,7 +36,7 @@ void IncludedElement::render(QPainter &painter, const QPointF &origin, const dou
     }
     posPoint /= scale;
     posPoint += origin;
-    painter.setPen(Qt::lightGray);
+    painter.setPen( (selected ? Qt::white : Qt::lightGray) );
     painter.drawLine(posPoint + QPointF{-10,0}, posPoint + QPointF{10,0});
     painter.drawLine(posPoint + QPointF{0,-10}, posPoint + QPointF{0,10});
 

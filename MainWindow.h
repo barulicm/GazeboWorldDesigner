@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTreeView>
 #include "WorldView.h"
+#include "PropertyPane.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -27,6 +28,8 @@ private:
     WorldView worldView;
 
     QTreeView modelTreeView;
+
+    PropertyPane propertyPane;
 
 };
 

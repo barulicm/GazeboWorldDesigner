@@ -23,7 +23,7 @@ link_directories(${ROSLIB_LIBRARY_DIRS})
 
 set(SOURCE_FILES main.cpp MainWindow.cpp WorldView.cpp ModelTreeItem.cpp ModelTreeModel.cpp qdarkstyle/style.qrc
         sdf/World.cpp sdf/IncludedElement.cpp sdf/Scene.cpp sdf/World.cpp sdf/SDFElement.cpp sdf/Color.cpp
-        sdf/IncludedElement.cpp sdf/Pose.cpp sdf/Scene.cpp sdf/Parser.cpp)
+        sdf/IncludedElement.cpp sdf/Pose.cpp sdf/Scene.cpp sdf/Parser.cpp PropertyPane.cpp)
 
 add_executable(gwd ${SOURCE_FILES})
 target_link_libraries(gwd Qt5::Widgets Qt5::Xml ${SDFormat_LIBRARIES} ${ROSLIB_LIBRARIES})

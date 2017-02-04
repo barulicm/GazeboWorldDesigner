@@ -15,7 +15,7 @@ struct IncludedElement : SDFElement {
 
     QDomElement toXML(QDomDocument &document) const override;
 
-    void render(QPainter &painter, const QPointF &origin, const double &scale) const override;
+    void render(QPainter &painter, const QPointF &origin, const double &scale, bool selected) const override;
 
     double distanceToPoint(const double &x, const double &y) const override;
 

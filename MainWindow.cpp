@@ -1,5 +1,4 @@
 #include "MainWindow.h"
-#include "ModelTreeItem.h"
 #include "ModelTreeModel.h"
 #include <QMenu>
 #include <QMenuBar>
@@ -19,9 +18,12 @@ MainWindow::MainWindow() {
     modelTreeView.viewport()->setAcceptDrops(false);
     modelTreeView.setDragDropMode(QAbstractItemView::DragOnly);
 
+    connect(&worldView, &WorldView::showProperties, &propertyPane, &PropertyPane::showProperties);
+
     QSplitter *splitter = new QSplitter{this};
     splitter->addWidget(&modelTreeView);
     splitter->addWidget(&worldView);
+    splitter->addWidget(&propertyPane);
 
     setCentralWidget(splitter);
 }

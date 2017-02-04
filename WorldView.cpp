@@ -14,7 +14,7 @@ WorldView::WorldView(QWidget *parent) : QWidget(parent) {
     setAcceptDrops(true);
 }
 
-void WorldView::paintEvent(QPaintEvent *e) {
+void WorldView::paintEvent(QPaintEvent *) {
 
     QPainter painter{this};
 
@@ -22,8 +22,8 @@ void WorldView::paintEvent(QPaintEvent *e) {
 
     QPointF origin{width()/2.0, height()/2.0};
 
-    for(const auto &element : world.elements) {
-        element->render(painter, origin, scale);
+    for(size_t i = 0; i < world.elements.size(); ++i) {
+        world.elements[i]->render(painter, origin, scale, (i == currentlySelectedIndex));
     }
 }
 
@@ -53,6 +53,10 @@ void WorldView::dropEvent(QDropEvent *event) {
         element->pose->z = 0.0;
 
         world.elements.push_back(std::move(element));
+
+        currentlySelectedIndex = world.elements.size()-1;
+        showProperties(world.elements[currentlySelectedIndex].get());
+        update();
     }
     event->acceptProposedAction();
     update();
@@ -71,7 +75,7 @@ void WorldView::wheelEvent(QWheelEvent *event) {
 }
 
 void WorldView::mousePressEvent(QMouseEvent *event) {
-    if((event->buttons() | Qt::MouseButton::LeftButton) != 0) {
+    if((event->buttons() | Qt::MouseButton::LeftButton) != 0 && !world.elements.empty()) {
         // check if close enough to an object
         QPointF origin{width()/2.0, height()/2.0};
         QPointF pressPos = (event->pos() - origin) * scale;
@@ -81,7 +85,11 @@ void WorldView::mousePressEvent(QMouseEvent *event) {
         });
         auto mindist = std::min_element(distances.begin(), distances.end());
         if(*mindist < 10) {
-            currentlyDraggingIndex = static_cast<size_t>(std::distance(distances.begin(), mindist));
+            size_t index = static_cast<size_t>(std::distance(distances.begin(), mindist));
+            if(index != currentlySelectedIndex) {
+                currentlySelectedIndex = static_cast<size_t>(std::distance(distances.begin(), mindist));
+                emit showProperties(world.elements[currentlySelectedIndex].get());
+            }
             isDragging = true;
         }
     }
@@ -89,7 +97,7 @@ void WorldView::mousePressEvent(QMouseEvent *event) {
 
 void WorldView::mouseMoveEvent(QMouseEvent *event) {
     if(isDragging) {
-        const auto &draggedElement = world.elements[currentlyDraggingIndex];
+        const auto &draggedElement = world.elements[currentlySelectedIndex];
         QPointF origin{width()/2.0, height()/2.0};
         QPointF movePos = (event->pos() - origin) * scale;
         draggedElement->setPose(movePos.x(), movePos.y(), 0);
@@ -100,6 +108,7 @@ void WorldView::mouseMoveEvent(QMouseEvent *event) {
 void WorldView::mouseReleaseEvent(QMouseEvent *event) {
     if((event->buttons() | Qt::MouseButton::LeftButton) != 0) {
         isDragging = false;
+        update();
     }
 }
 

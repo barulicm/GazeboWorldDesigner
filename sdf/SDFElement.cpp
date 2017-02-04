@@ -30,7 +30,7 @@ QDomElement SDFElement::optionalToXML(QDomDocument &document, const std::experim
     }
 }
 
-void SDFElement::render(QPainter &, const QPointF &, const double &) const {
+void SDFElement::render(QPainter &, const QPointF &, const double &, bool) const {
 
 }
 

@@ -17,6 +17,9 @@ public slots:
     void saveFile();
     void saveFileAs();
 
+signals:
+    void showProperties(SDFElement *);
+
 protected:
     void paintEvent(QPaintEvent *event) override;
 
@@ -43,7 +46,7 @@ private:
 
     bool isDragging = false;
 
-    size_t currentlyDraggingIndex = 0;
+    size_t currentlySelectedIndex = 0;
 
 };
 
