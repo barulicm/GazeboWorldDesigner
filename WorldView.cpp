@@ -12,6 +12,7 @@
 
 WorldView::WorldView(QWidget *parent) : QWidget(parent) {
     setAcceptDrops(true);
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 void WorldView::paintEvent(QPaintEvent *) {
@@ -58,6 +59,7 @@ void WorldView::dropEvent(QDropEvent *event) {
         showProperties(world.elements[currentlySelectedIndex].get());
         update();
     }
+    setFocus();
     event->acceptProposedAction();
     update();
 }
@@ -109,6 +111,16 @@ void WorldView::mouseReleaseEvent(QMouseEvent *event) {
     if((event->buttons() | Qt::MouseButton::LeftButton) != 0) {
         isDragging = false;
         update();
+    }
+}
+
+void WorldView::keyPressEvent(QKeyEvent *event) {
+    if(event->key() == Qt::Key_Delete && !world.elements.empty()) {
+        world.elements.erase(world.elements.begin() + static_cast<int>(currentlySelectedIndex));
+        currentlySelectedIndex = 0;
+        update();
+    } else {
+        QWidget::keyPressEvent(event);
     }
 }
 
