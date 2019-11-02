@@ -1,84 +1,107 @@
-#include "MainWindow.h"
-#include "ModelTreeModel.h"
 #include <QMenu>
 #include <QMenuBar>
 #include <QHeaderView>
 #include <QSplitter>
+#include <QTreeView>
+#include "ModelTreeModel.h"
+#include "PropertyPane.h"
+#include "MainWindow.h"
 
 MainWindow::MainWindow() {
     setWindowTitle("Gazebo World Designer");
 
-    createActions();
     createMenus();
 
-    ModelTreeModel *treeModel = new ModelTreeModel;
-    modelTreeView.setModel(treeModel);
-    modelTreeView.header()->hide();
-    modelTreeView.setDragEnabled(true);
-    modelTreeView.viewport()->setAcceptDrops(false);
-    modelTreeView.setDragDropMode(QAbstractItemView::DragOnly);
-
-    connect(&worldView, &WorldView::showProperties, &propertyPane, &PropertyPane::showProperties);
-
-    connect(&worldView, &WorldView::showSceneProperties, &scenePropertyPane, &PropertyPane::showProperties);
-
-    QVBoxLayout *propertyPanesLayout = new QVBoxLayout;
-    propertyPanesLayout->addWidget(new QLabel{"Object Properties"});
-    propertyPanesLayout->addWidget(&propertyPane);
-    propertyPanesLayout->addStretch();
-    QFrame* line = new QFrame();
-    line->setFrameShape(QFrame::HLine);
-    line->setFrameShadow(QFrame::Plain);
-    propertyPanesLayout->addWidget(line);
-    propertyPanesLayout->addWidget(new QLabel{"Scene Properties"});
-    propertyPanesLayout->addWidget(&scenePropertyPane);
-
-    QWidget *propertPanesWidget = new QWidget;
-    propertPanesWidget->setLayout(propertyPanesLayout);
-
-    QSplitter *splitter = new QSplitter{this};
-    splitter->addWidget(&modelTreeView);
+    auto splitter = new QSplitter{this};
+    splitter->addWidget(createLeftPanel());
     splitter->addWidget(&worldView);
-    splitter->addWidget(propertPanesWidget);
+    splitter->addWidget(createRightPanel());
 
     setCentralWidget(splitter);
 
     worldView.newFile();
 }
 
-void MainWindow::createActions() {
-    closeAct = new QAction{"&Close", this};
+void MainWindow::createMenus() {
+    auto closeAct = new QAction{"&Close", this};
     closeAct->setShortcuts(QKeySequence::Close);
     connect(closeAct, &QAction::triggered, this, &QMainWindow::close);
     addAction(closeAct);
 
-    newFileAct = new QAction{"&New", this};
+    auto newFileAct = new QAction{"&New", this};
     newFileAct->setShortcuts(QKeySequence::New);
     connect(newFileAct, &QAction::triggered, &worldView, &WorldView::newFile);
     addAction(newFileAct);
 
-    openFileAct = new QAction{"&Open", this};
+    auto openFileAct = new QAction{"&Open", this};
     openFileAct->setShortcuts(QKeySequence::Open);
     connect(openFileAct, &QAction::triggered, &worldView, &WorldView::openFile);
     addAction(openFileAct);
 
-    saveFileAct = new QAction{"&Save", this};
+    auto saveFileAct = new QAction{"&Save", this};
     saveFileAct->setShortcuts(QKeySequence::Save);
     connect(saveFileAct, &QAction::triggered, &worldView, &WorldView::saveFile);
     addAction(saveFileAct);
 
-    saveFileAsAct = new QAction{"&Save As", this};
+    auto saveFileAsAct = new QAction{"&Save As", this};
     saveFileAsAct->setShortcuts(QKeySequence::SaveAs);
     connect(saveFileAsAct, &QAction::triggered, &worldView, &WorldView::saveFileAs);
     addAction(saveFileAsAct);
-}
 
-void MainWindow::createMenus() {
-    fileMenu = menuBar()->addMenu("&File");
+    auto fileMenu = menuBar()->addMenu("&File");
     fileMenu->addAction(newFileAct);
     fileMenu->addAction(openFileAct);
     fileMenu->addAction(saveFileAct);
     fileMenu->addAction(saveFileAsAct);
     fileMenu->addSeparator();
     fileMenu->addAction(closeAct);
+}
+
+QWidget *MainWindow::createLeftPanel() {
+  auto leftSideLayout = new QVBoxLayout;
+  leftSideLayout->addWidget(new QLabel{"Available Models"});
+
+  auto treeModel = new ModelTreeModel;
+  auto modelTreeView = new QTreeView;
+  modelTreeView->setModel(treeModel);
+  modelTreeView->header()->hide();
+  modelTreeView->setDragEnabled(true);
+  modelTreeView->viewport()->setAcceptDrops(false);
+  modelTreeView->setDragDropMode(QAbstractItemView::DragOnly);
+  leftSideLayout->addWidget(modelTreeView);
+
+  auto leftLine = new QFrame();
+  leftLine->setFrameShape(QFrame::HLine);
+  leftLine->setFrameShadow(QFrame::Plain);
+  leftSideLayout->addWidget(leftLine);
+
+  leftSideLayout->addWidget(new QLabel{"Current World"});
+
+  auto leftSideWidget = new QWidget;
+  leftSideWidget->setLayout(leftSideLayout);
+
+  return leftSideWidget;
+}
+
+QWidget *MainWindow::createRightPanel() {
+  auto propertyPanesLayout = new QVBoxLayout;
+  propertyPanesLayout->addWidget(new QLabel{"Object Properties"});
+  auto objectPropertyPane = new PropertyPane;
+  propertyPanesLayout->addWidget(objectPropertyPane);
+  propertyPanesLayout->addStretch();
+  auto line = new QFrame();
+  line->setFrameShape(QFrame::HLine);
+  line->setFrameShadow(QFrame::Plain);
+  propertyPanesLayout->addWidget(line);
+  propertyPanesLayout->addWidget(new QLabel{"Scene Properties"});
+  auto scenePropertyPane = new PropertyPane;
+  propertyPanesLayout->addWidget(scenePropertyPane);
+
+  connect(&worldView, &WorldView::showProperties, objectPropertyPane, &PropertyPane::showProperties);
+  connect(&worldView, &WorldView::showSceneProperties, scenePropertyPane, &PropertyPane::showProperties);
+
+  auto propertyPanesWidget = new QWidget;
+  propertyPanesWidget->setLayout(propertyPanesLayout);
+
+  return propertyPanesWidget;
 }
