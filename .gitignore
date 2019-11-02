@@ -30,3 +30,4 @@
 
 #JetBrains CLion
 .idea/
+cmake-build-*/

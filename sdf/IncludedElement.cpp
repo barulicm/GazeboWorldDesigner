@@ -1,3 +1,4 @@
+#include <cmath>
 #include <QtXml/QDomElement>
 #include "IncludedElement.h"
 
