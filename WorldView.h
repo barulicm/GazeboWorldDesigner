@@ -12,14 +12,10 @@ public:
     WorldView(QWidget *parent = nullptr);
 
 public slots:
-    void newFile();
-    void openFile();
-    void saveFile();
-    void saveFileAs();
+    void newWorld(World &newWorld);
 
 signals:
-    void showProperties(SDFElement *);
-    void showSceneProperties(Scene *);
+    void onSelectedIndexChanged(int index);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -38,10 +34,7 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
 
 private:
-    World world;
-    std::string currentFilePath;
-
-    void writeWorldToFile(const std::string &filepath);
+    World *world = nullptr;
 
     void drawOrigin(QPainter &painter);
 
@@ -49,7 +42,8 @@ private:
 
     bool isDragging = false;
 
-    size_t currentlySelectedIndex = 0;
+    int selectedIndex = 0;
+    void setSelectedIndex(int index);
 
 };
 

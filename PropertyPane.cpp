@@ -114,6 +114,12 @@ void PropertyPane::showProperties(SDFElement *element) {
     }
 }
 
+void PropertyPane::clear() {
+    while(!layout->isEmpty()) {
+        layout->removeRow(0);
+    }
+}
+
 void PropertyPane::clearChildren() {
     for(QWidget *child : findChildren<QWidget*>()) {
         delete child;

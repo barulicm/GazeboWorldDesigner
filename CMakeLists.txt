@@ -18,7 +18,7 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets Xml)
 
 set(SOURCE_FILES main.cpp MainWindow.cpp WorldView.cpp ModelTreeItem.cpp ModelTreeModel.cpp qdarkstyle/style.qrc
         sdf/World.cpp sdf/IncludedElement.cpp sdf/Scene.cpp sdf/World.cpp sdf/SDFElement.cpp sdf/Color.cpp
-        sdf/IncludedElement.cpp sdf/Pose.cpp sdf/Scene.cpp sdf/Parser.cpp PropertyPane.cpp)
+        sdf/IncludedElement.cpp sdf/Pose.cpp sdf/Scene.cpp sdf/Parser.cpp PropertyPane.cpp FileManager.cpp)
 
 add_executable(gwd ${SOURCE_FILES})
 target_include_directories(gwd PRIVATE ${SDFormat_INCLUDE_DIRS} ${roslib_INCLUDE_DIRS})

@@ -14,6 +14,7 @@ public:
 
 public slots:
     void showProperties(SDFElement *element);
+    void clear();
 
 private:
 

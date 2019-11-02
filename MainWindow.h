@@ -2,6 +2,7 @@
 #define GWD_MAINWINDOW_H
 
 #include <QMainWindow>
+#include "FileManager.h"
 #include "WorldView.h"
 
 class MainWindow : public QMainWindow {
@@ -13,11 +14,10 @@ public:
 public slots:
 
 private:
-    void createMenus();
+    void createMenus(FileManager *fileManager);
     [[nodiscard]] QWidget* createLeftPanel();
-    [[nodiscard]] QWidget* createRightPanel();
-
-    WorldView worldView;
+    [[nodiscard]] QWidget *
+    createRightPanel(FileManager *fileManager, WorldView *worldView);
 
 };
 

@@ -15,6 +15,12 @@ WorldView::WorldView(QWidget *parent) : QWidget(parent) {
     setFocusPolicy(Qt::StrongFocus);
 }
 
+void WorldView::newWorld(World &newWorld) {
+    world = &newWorld;
+    setSelectedIndex(-1);
+    update();
+}
+
 void WorldView::paintEvent(QPaintEvent *) {
 
     QPainter painter{this};
@@ -23,8 +29,11 @@ void WorldView::paintEvent(QPaintEvent *) {
 
     QPointF origin{width()/2.0, height()/2.0};
 
-    for(size_t i = 0; i < world.elements.size(); ++i) {
-        world.elements[i]->render(painter, origin, scale, (i == currentlySelectedIndex));
+    if(world != nullptr) {
+        for (size_t i = 0; i < world->elements.size(); ++i) {
+            world->elements[i]->render(painter, origin, scale,
+                                      (i == static_cast<size_t>(selectedIndex)));
+        }
     }
 }
 
@@ -41,27 +50,28 @@ void WorldView::dragLeaveEvent(QDragLeaveEvent *event) {
 }
 
 void WorldView::dropEvent(QDropEvent *event) {
-    const QMimeData *mimeData = event->mimeData();
-    if(mimeData->hasText()) {
-        std::unique_ptr<IncludedElement> element = std::make_unique<IncludedElement>();
-        element->uri = "model://" + mimeData->text().toStdString();
-        element->isStatic = true;
+    if(world != nullptr) {
+        const QMimeData *mimeData = event->mimeData();
+        if (mimeData->hasText()) {
+            std::unique_ptr<IncludedElement> element = std::make_unique<IncludedElement>();
+            element->uri = "model://" + mimeData->text().toStdString();
+            element->isStatic = true;
 
-        const QPointF &dropPos = event->posF();
-        element->pose = Pose{};
-        element->pose->x = (dropPos.x() -  width()/2.0) * scale;
-        element->pose->y = (dropPos.y() - height()/2.0) * scale;
-        element->pose->z = 0.0;
+            const QPointF &dropPos = event->posF();
+            element->pose = Pose{};
+            element->pose->x = (dropPos.x() - width() / 2.0) * scale;
+            element->pose->y = (dropPos.y() - height() / 2.0) * scale;
+            element->pose->z = 0.0;
 
-        world.elements.push_back(std::move(element));
+            world->elements.push_back(std::move(element));
 
-        currentlySelectedIndex = world.elements.size()-1;
-        showProperties(world.elements[currentlySelectedIndex].get());
+            setSelectedIndex(static_cast<int>(world->elements.size() - 1));
+            update();
+        }
+        setFocus();
+        event->acceptProposedAction();
         update();
     }
-    setFocus();
-    event->acceptProposedAction();
-    update();
 }
 
 void WorldView::wheelEvent(QWheelEvent *event) {
@@ -77,33 +87,42 @@ void WorldView::wheelEvent(QWheelEvent *event) {
 }
 
 void WorldView::mousePressEvent(QMouseEvent *event) {
-    if((event->buttons() | Qt::MouseButton::LeftButton) != 0 && !world.elements.empty()) {
-        // check if close enough to an object
-        QPointF origin{width()/2.0, height()/2.0};
-        QPointF pressPos = (event->pos() - origin) * scale;
-        std::vector<double> distances(world.elements.size(), 0);
-        std::transform(world.elements.begin(), world.elements.end(), distances.begin(), [&pressPos,this](const std::unique_ptr<SDFElement> &e){
-            return e->distanceToPoint(pressPos.x(), pressPos.y()) / scale;
-        });
-        auto mindist = std::min_element(distances.begin(), distances.end());
-        if(*mindist < 10) {
-            size_t index = static_cast<size_t>(std::distance(distances.begin(), mindist));
-            if(index != currentlySelectedIndex) {
-                currentlySelectedIndex = static_cast<size_t>(std::distance(distances.begin(), mindist));
-                emit showProperties(world.elements[currentlySelectedIndex].get());
+    if(world != nullptr) {
+        if ((event->buttons() | Qt::MouseButton::LeftButton) != 0 &&
+            !world->elements.empty()) {
+            // check if close enough to an object
+            QPointF origin{width() / 2.0, height() / 2.0};
+            QPointF pressPos = (event->pos() - origin) * scale;
+            std::vector<double> distances(world->elements.size(), 0);
+            std::transform(world->elements.begin(), world->elements.end(),
+                           distances.begin(), [&pressPos, this](
+                    const std::unique_ptr<SDFElement> &e) {
+                  return e->distanceToPoint(pressPos.x(), pressPos.y()) / scale;
+                });
+            auto mindist = std::min_element(distances.begin(), distances.end());
+            if (*mindist < 10) {
+                auto index = static_cast<int>(std::distance(
+                    distances.begin(), mindist));
+                if (index != selectedIndex) {
+                    setSelectedIndex(
+                        static_cast<size_t>(std::distance(distances.begin(),
+                                                          mindist)));
+                }
+                isDragging = true;
             }
-            isDragging = true;
         }
     }
 }
 
 void WorldView::mouseMoveEvent(QMouseEvent *event) {
-    if(isDragging) {
-        const auto &draggedElement = world.elements[currentlySelectedIndex];
-        QPointF origin{width()/2.0, height()/2.0};
-        QPointF movePos = (event->pos() - origin) * scale;
-        draggedElement->setPose(movePos.x(), movePos.y(), 0);
-        update();
+    if(world != nullptr) {
+        if (isDragging && selectedIndex >= 0) {
+            const auto &draggedElement = world->elements[static_cast<size_t>(selectedIndex)];
+            QPointF origin{width() / 2.0, height() / 2.0};
+            QPointF movePos = (event->pos() - origin) * scale;
+            draggedElement->setPose(movePos.x(), movePos.y(), 0);
+            update();
+        }
     }
 }
 
@@ -115,88 +134,16 @@ void WorldView::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void WorldView::keyPressEvent(QKeyEvent *event) {
-    if(event->key() == Qt::Key_Delete && !world.elements.empty()) {
-        world.elements.erase(world.elements.begin() + static_cast<int>(currentlySelectedIndex));
-        currentlySelectedIndex = 0;
-        update();
-    } else {
-        QWidget::keyPressEvent(event);
+    if(world != nullptr) {
+        if (event->key() == Qt::Key_Delete && !world->elements.empty()) {
+            world->elements.erase(
+                world->elements.begin() + static_cast<int>(selectedIndex));
+            setSelectedIndex(0);
+            update();
+        } else {
+            QWidget::keyPressEvent(event);
+        }
     }
-}
-
-void WorldView::newFile() {
-    world = World{};
-    emit showSceneProperties(&world.scene);
-    currentFilePath.clear();
-    update();
-}
-
-void WorldView::openFile() {
-    auto filename = QFileDialog::getOpenFileName(this, "Open World",
-                                                 QStandardPaths::writableLocation(QStandardPaths::HomeLocation),
-                                                 "SDF Files (*.sdf *.world *.xml)");
-    if(filename.isEmpty())
-        return;
-
-    QFile file{filename};
-    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Gazebo World Designer", "Could not open world file\n" + filename, QMessageBox::Ok);
-        return;
-    }
-
-    QDomDocument document;
-    document.setContent(file.readAll());
-    file.close();
-
-
-    world = Parser::ParseWorld(document);
-
-    emit showSceneProperties(&world.scene);
-
-    currentFilePath = filename.toStdString();
-
-    update();
-}
-
-void WorldView::saveFile() {
-    if(currentFilePath.empty()) {
-        saveFileAs();
-    } else {
-        writeWorldToFile(currentFilePath);
-    }
-}
-
-void WorldView::saveFileAs() {
-    currentFilePath = QFileDialog::getSaveFileName(this, "Save World",
-                                                   QStandardPaths::writableLocation(QStandardPaths::HomeLocation),
-                                                   "SDF Files (*.sdf *.world *.xml)").toStdString();
-
-    if(currentFilePath.empty()) // Dialog cancelled
-        return;
-
-    writeWorldToFile(currentFilePath);
-}
-
-void WorldView::writeWorldToFile(const std::string &filepath) {
-
-    QDomDocument xmlDocument;
-    auto xml = world.toXML(xmlDocument);
-
-    QDomElement sdfElement = xmlDocument.createElement("sdf");
-    sdfElement.setAttribute("version", "1.4");
-    sdfElement.appendChild(xml);
-    xmlDocument.appendChild(sdfElement);
-
-    QFile file{filepath.c_str()};
-    if(!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
-        QMessageBox::critical(this, "Gazebo World Designer",
-                              ("Unable to open file for saving: " + currentFilePath).c_str(), QMessageBox::Ok);
-        return;
-    }
-    QTextStream textStream{&file};
-    xmlDocument.save(textStream,1);
-    textStream.flush();
-    file.close();
 }
 
 void WorldView::drawOrigin(QPainter &painter) {
@@ -205,4 +152,9 @@ void WorldView::drawOrigin(QPainter &painter) {
     painter.drawLine(c, c + QPointF{1.0/scale, 0});
     painter.setPen(Qt::green);
     painter.drawLine(c, c + QPointF{0, 1.0/scale});
+}
+
+void WorldView::setSelectedIndex(int index) {
+    selectedIndex = index;
+    emit onSelectedIndexChanged(selectedIndex);
 }
