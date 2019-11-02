@@ -37,10 +37,14 @@ private:
     World *world = nullptr;
 
     void drawOrigin(QPainter &painter);
+    QPointF scaledOrigin();
 
     double scale = 0.01; // m/px
+    QPointF origin{0.5f,0.5f};
 
-    bool isDragging = false;
+    bool isDraggingElement = false;
+    bool isDraggingView = false;
+    QPoint prevMousePose;
 
     int selectedIndex = 0;
     void setSelectedIndex(int index);

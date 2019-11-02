@@ -27,11 +27,9 @@ void WorldView::paintEvent(QPaintEvent *) {
 
     drawOrigin(painter);
 
-    QPointF origin{width()/2.0, height()/2.0};
-
     if(world != nullptr) {
         for (size_t i = 0; i < world->elements.size(); ++i) {
-            world->elements[i]->render(painter, origin, scale,
+            world->elements[i]->render(painter, scaledOrigin(), scale,
                                       (i == static_cast<size_t>(selectedIndex)));
         }
     }
@@ -59,8 +57,8 @@ void WorldView::dropEvent(QDropEvent *event) {
 
             const QPointF &dropPos = event->posF();
             element->pose = Pose{};
-            element->pose->x = (dropPos.x() - width() / 2.0) * scale;
-            element->pose->y = (dropPos.y() - height() / 2.0) * scale;
+            element->pose->x = (dropPos.x() - scaledOrigin().x()) * scale;
+            element->pose->y = (dropPos.y() - scaledOrigin().y()) * scale;
             element->pose->z = 0.0;
 
             world->elements.push_back(std::move(element));
@@ -88,27 +86,35 @@ void WorldView::wheelEvent(QWheelEvent *event) {
 
 void WorldView::mousePressEvent(QMouseEvent *event) {
     if(world != nullptr) {
-        if ((event->buttons() | Qt::MouseButton::LeftButton) != 0 &&
-            !world->elements.empty()) {
-            // check if close enough to an object
-            QPointF origin{width() / 2.0, height() / 2.0};
-            QPointF pressPos = (event->pos() - origin) * scale;
-            std::vector<double> distances(world->elements.size(), 0);
-            std::transform(world->elements.begin(), world->elements.end(),
-                           distances.begin(), [&pressPos, this](
-                    const std::unique_ptr<SDFElement> &e) {
-                  return e->distanceToPoint(pressPos.x(), pressPos.y()) / scale;
-                });
-            auto mindist = std::min_element(distances.begin(), distances.end());
-            if (*mindist < 10) {
-                auto index = static_cast<int>(std::distance(
-                    distances.begin(), mindist));
-                if (index != selectedIndex) {
-                    setSelectedIndex(
-                        static_cast<size_t>(std::distance(distances.begin(),
-                                                          mindist)));
+        if ((event->buttons() | Qt::MouseButton::LeftButton) != 0) {
+            if (!world->elements.empty()) {
+                // check if close enough to an object
+                QPointF pressPos = (event->pos() - scaledOrigin()) * scale;
+                std::vector<double> distances(world->elements.size(), 0);
+                std::transform(world->elements.begin(), world->elements.end(),
+                               distances.begin(), [&pressPos, this](
+                        const std::unique_ptr<SDFElement> &e) {
+                      return e->distanceToPoint(pressPos.x(), pressPos.y()) /
+                             scale;
+                    });
+                auto mindist = std::min_element(distances.begin(),
+                                                distances.end());
+                if (*mindist < 10) {
+                    auto index = static_cast<int>(std::distance(
+                        distances.begin(), mindist));
+                    if (index != selectedIndex) {
+                        setSelectedIndex(
+                            static_cast<size_t>(std::distance(distances.begin(),
+                                                              mindist)));
+                    }
+                    isDraggingElement = true;
+                } else {
+                    isDraggingView = true;
+                    prevMousePose = event->pos();
                 }
-                isDragging = true;
+            } else {
+                isDraggingView = true;
+                prevMousePose = event->pos();
             }
         }
     }
@@ -116,11 +122,17 @@ void WorldView::mousePressEvent(QMouseEvent *event) {
 
 void WorldView::mouseMoveEvent(QMouseEvent *event) {
     if(world != nullptr) {
-        if (isDragging && selectedIndex >= 0) {
+        if (isDraggingElement && selectedIndex >= 0) {
             const auto &draggedElement = world->elements[static_cast<size_t>(selectedIndex)];
-            QPointF origin{width() / 2.0, height() / 2.0};
-            QPointF movePos = (event->pos() - origin) * scale;
+            QPointF movePos = (event->pos() - scaledOrigin()) * scale;
             draggedElement->setPose(movePos.x(), movePos.y(), 0);
+            update();
+        } else if(isDraggingView) {
+            auto deltaX = static_cast<float>(event->x() - prevMousePose.x()) / width();
+            auto deltaY = static_cast<float>(event->y() - prevMousePose.y()) / height();
+            origin.setX(origin.x() + deltaX);
+            origin.setY(origin.y() + deltaY);
+            prevMousePose = event->pos();
             update();
         }
     }
@@ -128,7 +140,8 @@ void WorldView::mouseMoveEvent(QMouseEvent *event) {
 
 void WorldView::mouseReleaseEvent(QMouseEvent *event) {
     if((event->buttons() | Qt::MouseButton::LeftButton) != 0) {
-        isDragging = false;
+        isDraggingElement = false;
+        isDraggingView = false;
         update();
     }
 }
@@ -147,11 +160,15 @@ void WorldView::keyPressEvent(QKeyEvent *event) {
 }
 
 void WorldView::drawOrigin(QPainter &painter) {
-    QPointF c{width()/2.0, height()/2.0};
+    QPointF c = scaledOrigin();
     painter.setPen(Qt::red);
     painter.drawLine(c, c + QPointF{1.0/scale, 0});
     painter.setPen(Qt::green);
     painter.drawLine(c, c + QPointF{0, 1.0/scale});
+}
+
+QPointF WorldView::scaledOrigin() {
+    return QPointF{origin.x() * width(), origin.y() * height()};
 }
 
 void WorldView::setSelectedIndex(int index) {
